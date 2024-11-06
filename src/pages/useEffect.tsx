@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import useMousePosition from '@/hoosk/useMousePosition'
+import useCountDown from '@/hoosk/useCountDown'
 const Child: React.FC = () => {
     const [color, setColor] = useState('')
     useEffect(() => {
@@ -31,6 +32,15 @@ const MouseComponent: React.FC = () => {
             鼠标位置为 x:{position.x}
             <br></br>
             鼠标位置为 y:{position.y}
+        </>
+    )
+}
+const PageCountDown: React.FC = () => {
+    const time = useCountDown(10)
+
+    return (
+        <>
+            <button disabled={time > 0}>确认签署协议{time > 0 && <span>({time})</span>}</button>
         </>
     )
 }
@@ -67,8 +77,10 @@ const Effect: React.FC = () => {
             <button onClick={() => setShow(!show)}>显示组件</button>
             {show && <Child />}
 
-            <button onClick={() => setShowMouse(!showMouse)}>显示鼠标位置</button>
-            {showMouse && <MouseComponent />}
+            {/* <button onClick={() => setShowMouse(!showMouse)}>显示鼠标位置</button>
+            {showMouse && <MouseComponent />} */}
+
+            <PageCountDown />
         </>
     )
 }

@@ -1,4 +1,4 @@
-## Vite-React-Hooks
+# Vite-React-Hooks
 
 ### 配置路径提示 @
 
@@ -29,6 +29,8 @@ npm i -D @types/node
         }
     },
 ```
+
+# useState
 
 ## `useState` 能让含函数组件拥有自己的状态，他是一个管理状态的 hooks Api 。 通过 useState 可以实现状态的初始化，读取，更新。
 
@@ -129,6 +131,8 @@ return (
 )
 ```
 
+# useRef
+
 ## useRef 函数返回的一个可变的 ref 对象，该对象只有一个 current 属性，可以在调用 useRef 函数时为他指定初始值，并且这个返回的 ref 对象在整个生命周期内保持不变
 
 ### useRef 的作用
@@ -201,6 +205,8 @@ export default BaseUseRef
 
 ```
 
+# forwardRef
+
 ## forwardRef ref 的作用是获取实例,而函数组件不存在实例,所以无法通过 ref 获取到,需要用到 react.forwardRef
 
 -   例子涉及到父子组件 获取 ref 及子组件向外暴露数据
@@ -209,7 +215,7 @@ export default BaseUseRef
 
 _如果 在父组件中使用了 ref 来获取子组件 , 普通的函数组件时获取不到的,因为无法获取到实例_
 
-_const Child:React.FC =()=>{<></>} 比如这样写,就会报错_
+_`const Child:React.FC =()=>{<></>}` 比如这样写,就会报错_
 _为了获取到子组件的内容需要使用 React.forwardRef 这个方法 包裹对应的函数组件_
 
 _React.forwardRef 接受两个参数,第一个参数是 props 父组件对子组件传递的参数 ,第二个就是 ref 参数_
@@ -272,6 +278,8 @@ const Child = React.forwardRef((props, ref) => {
 **如果 第三个参数传一个依赖项数组,当数组中有数据发生变化时,第二个参数就会执行一次,更新暴露内容**
 
 **如果省略第三个参数,则在子组件中有任何一个 useState 的数据发生变化时都会重新执行第二个参数传入的方法,更新暴露内容**
+
+# useEffect
 
 ## useEffect 副作用函数
 
@@ -389,4 +397,158 @@ const MouseComponent: React.FC = () => {
         </>
     )
 }
+```
+
+## 自定义 hook 默认将自己封装的 hook 名称都为 use 开头（ps: 感觉就是封装了一个方法）
+
+### 封装一个倒计时显示的 hook
+
+```js
+import { useState, useEffect } from 'react'
+
+const useCountDown = (time = 10) => {
+    let num = Math.round(Math.abs(time)) || 10
+    let [totalTime, setTotalTime] = useState(num)
+
+    useEffect(() => {
+        let timerId = setInterval(() => {
+            setTotalTime(prv => {
+                if (prv - 1 >= 0) {
+                    return prv - 1
+                } else {
+                    return 0
+                }
+            })
+            if (totalTime === 0) {
+                clearInterval(timerId)
+            }
+        }, 1000)
+        return () => {
+            if (totalTime === 0) {
+                clearInterval(timerId)
+            }
+        }
+    }, [])
+    return totalTime
+}
+
+export default useCountDown
+```
+
+# `useLayoutEffect`
+
+### `useLayoutEffect` 与 `useEffect` 副作用函数相似
+
+> useLayoutEffect 也是接受一个副作用函数和依赖项数组，当依赖项发生变化时执行副作用函数，也可以返回一个 return 一个清理函数
+
+### `useLayoutEffect` 与 `useEffect` 的区别
+
+-   `useEffect`是在浏览器页面渲染完成后执行的钩子函数
+-   `useLayoutEffect`是在浏览器页面渲染完成前执行
+-   `useEffect`是异步执行，不会阻塞浏览器绘制
+-   `useLayoutEffect`是同步执行，会阻塞浏览器绘制。（副作用函数不要处理太多的操作
+
+#### 举例说明俩 hook 区别
+
+```js
+import React, { useState, useEffect, useLayoutEffect } from 'react'
+
+const LayoutEffect: React.FC = () => {
+    const [num, setNum] = useState(Math.random() * 200)
+    // 这里设置为0 后使用useEffect 判断条件再设置为随机数 会有闪烁问题，
+    // 因为useEffect实在页面渲染完成后执行，
+    // 依赖项变化后会重新再渲染。 为了不闪烁可以使用useLayoutEffect
+    // useEffect(() => {
+    //     if (num === 0) {
+    //         setNum(Math.random() * 200)
+    //     }
+    // }, [num])
+
+    useLayoutEffect(() => {
+        if (num === 0) {
+            setNum(Math.random() * 200)
+        }
+    }, [num])
+    return (
+        <>
+            <div>num 的值是 {num}</div>
+            <button onClick={() => setNum(0)}>更改num</button>
+        </>
+    )
+}
+
+export default LayoutEffect
+```
+
+# useReducer
+
+_当组件状态过多，或管理起来太过复杂的时候，可以用 useReducer 来统一管理状态_
+
+```js
+/**
+ * useReducer 中
+ * @params reducer 是一个函数，类似于(prev,action)=>newState，当用户想要更改状态时可以调用dispath函数，就会触发reducer函数，从而得到新的状态值
+ * @initState 初始化状态，也就是默认值
+ * @initAction fn函数，是一个可选参数，如果传入了fn，会将initState的初始值传入fn函数进行处理的返回值作为 state的值。
+ */
+const [state,dispath] = useReducer(reducer,initState,initAction?)
+```
+
+## 举个`useReducer`使用的简单例子。
+
+```tsx
+import React, { useReducer } from 'react'
+// useReducer 需要 三个参数
+// initState
+const initState = {
+    name: 'KID.',
+    age: 18,
+}
+type StateType = typeof initState
+
+// 当我们使用reducer是，常见给action设置type，这样书写reducer会有提示内容，可以防止代码错误。
+type ActionType = { type: 'UPDATE_NAME' | 'UPDATE_AGE'; payload: string | number }
+
+// reducer
+const reducer = (prev: StateType, action: ActionType) => {
+    switch (action.type) {
+        case 'UPDATE_NAME':
+            return { ...prev, name: action.payload }
+        case 'UPDATE_AGE':
+            return { ...prev, age: action.payload }
+        default:
+            return prev
+    }
+}
+// action
+const action = (state: StateType) => {
+    return { ...state, age: Math.round(Math.abs(state.age) || 18) }
+}
+const ReducerDemo: React.FC = () => {
+    const [state, setState] = useReducer(reducer, initState, action)
+    const handleChangeName = () => {
+        // 修改reducer的数据,不可以直接给state.name='xxx'这样赋值,
+        // 这样数据会改变,但是不会重新渲染页面.
+        // 要通过调用dispath方法来触发reducer从而更新页面
+        setState({
+            type: 'UPDATE_NAME',
+            payload: 'zhangsan',
+        })
+    }
+    const handleChangeAge = () => {
+        setState({
+            type: 'UPDATE_AGE',
+            payload: 15,
+        })
+    }
+    return (
+        <>
+            <p>名字： {state.name}</p>
+            <p>年龄： {state.age}</p>
+            <button onClick={handleChangeName}>更改名字</button>
+            <button onClick={handleChangeAge}>更改年龄</button>
+        </>
+    )
+}
+export default ReducerDemo
 ```

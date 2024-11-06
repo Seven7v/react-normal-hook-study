@@ -5,6 +5,8 @@ import { BaseUseState } from '@/pages/useState'
 import BaseUseRef from '@/pages/useRef'
 import ForwardRef from '@/pages/forwardRef'
 import Effect from '@/pages/useEffect'
+import LayoutEffect from '@/pages/useLayoutEffect'
+import UseReducer from '@/pages/useReducer'
 
 // React.FC<T> 表示这是一个函数式的react组件
 const App: React.FC = () => {
@@ -13,7 +15,7 @@ const App: React.FC = () => {
         return {
             year: dt.getFullYear(),
             month: dt.getMonth() + 1,
-            day: dt.getDate()
+            day: dt.getDate(),
         }
     })
     return (
@@ -26,6 +28,9 @@ const App: React.FC = () => {
             <BaseUseRef />
             <ForwardRef />
             <Effect />
+            <LayoutEffect />
+            <br />
+            <UseReducer />
         </>
     )
 }
